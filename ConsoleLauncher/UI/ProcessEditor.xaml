@@ -1,0 +1,117 @@
+﻿<Controls:MetroWindow x:Class="ConsoleLauncher.UI.ProcessEditor"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ConsoleLauncher.UI"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:local_helpers="clr-namespace:ConsoleLauncher.UIHelpers"
+        mc:Ignorable="d"
+        Title="Process" Height="160" MinHeight="160" MaxHeight="160" Width="300" MinWidth="215"
+        BorderBrush="{DynamicResource AccentColorBrush}"
+        BorderThickness="1">
+    <Controls:MetroWindow.Resources>
+        <ResourceDictionary>
+            <!-- mahapps style -->
+            <ResourceDictionary.MergedDictionaries>
+                <!-- MahApps.Metro resource dictionaries. Make sure that all file names are Case Sensitive! -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colors.xaml" />
+                <!-- Accent and AppTheme setting -->
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Amber.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <!-- converters -->
+            <local_helpers:FullCommandConverter x:Key="FullCommandConverter"/>
+            <local_helpers:FullCommandTwoValueConverter x:Key="FullCommandTwoValueConverter"/>
+            <local_helpers:FullCommandThreeValueConverter x:Key="FullCommandThreeValueConverter"/>
+            <local_helpers:ShortPathConverter x:Key="ShortPathConverter"/>
+            <local_helpers:EqualityMultiConverter x:Key="EqualityMultiConverter"/>
+        </ResourceDictionary>
+    </Controls:MetroWindow.Resources>
+    <Grid Margin="6,6,6,2">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="42"></RowDefinition>
+        </Grid.RowDefinitions>
+        <!-- main process info -->
+        <DockPanel Grid.Row="0">
+            <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" >
+                <TextBlock VerticalAlignment="Center" FontFamily="Consolas" Width="60">Name:</TextBlock>
+                <TextBox FontFamily="Consolas" Name="PART_NameTextBox" Text="{Binding Path=Process.Name, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}}">
+                    <TextBox.Style>
+                        <!-- name is bound to either name property or command -->
+                        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ElementName=PART_IsDefaultNameCheckBox, Path=IsChecked}" Value="True">
+                                    <Setter Property="IsEnabled" Value="False"></Setter>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding ElementName=PART_IsDefaultNameCheckBox, Path=IsChecked}" Value="False">
+                                    <Setter Property="IsEnabled" Value="True"></Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+            </DockPanel>
+            <DockPanel Margin="0,4,0,0"  DockPanel.Dock="Top" HorizontalAlignment="Stretch" >
+                <CheckBox Checked="PART_IsDefaultNameCheckBox_Checked" FlowDirection="RightToLeft" HorizontalAlignment="Right" Name="PART_IsDefaultNameCheckBox" Content="name based on executable command">
+                    <!-- checkbox is checked if name is the same as command -->
+                    <CheckBox.IsChecked>
+                        <MultiBinding Mode="OneWay" Converter="{StaticResource EqualityMultiConverter}">
+                            <Binding Path="Process.Name" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}"></Binding>
+                            <Binding Path="Process.Command" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}"></Binding>
+                        </MultiBinding>
+                    </CheckBox.IsChecked>
+                </CheckBox>
+            </DockPanel>
+            <DockPanel Margin="0,4,0,0"  DockPanel.Dock="Top" HorizontalAlignment="Stretch" >
+                <TextBlock FontFamily="Consolas" VerticalAlignment="Center" Width="60">Command:</TextBlock>
+                <TextBox VerticalAlignment="Center" FontFamily="Consolas" Name="PART_CommandTextBox">
+                    <TextBox.Text>
+                        <MultiBinding Converter="{StaticResource FullCommandTwoValueConverter}">
+                            <Binding Path="Process.Command" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}"></Binding>
+                            <Binding Path="Process.Arguments" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}"></Binding>
+                        </MultiBinding>
+                    </TextBox.Text>
+                    <!--<TextBox.Style>
+                        --><!-- name is bound to either name property or command --><!--
+                        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+                            <Style.Triggers>
+                                --><!-- if checkbox is not checked name doesn't change along with command --><!--
+                                <DataTrigger Binding="{Binding ElementName=PART_IsDefaultNameCheckBox, Path=IsChecked}" Value="False">
+                                    <Setter Property="Text">
+                                        <Setter.Value>
+                                            <MultiBinding UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource FullCommandTwoValueConverter}">
+                                                <Binding Path="Process.Command" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}"></Binding>
+                                                <Binding Path="Process.Arguments" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}"></Binding>
+                                            </MultiBinding>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                                --><!-- if checkbox is checked name changes along with command --><!--
+                                <DataTrigger Binding="{Binding ElementName=PART_IsDefaultNameCheckBox, Path=IsChecked}" Value="True">
+                                    <Setter Property="Text">
+                                        <Setter.Value>
+                                            <MultiBinding UpdateSourceTrigger="PropertyChanged" Converter="{StaticResource FullCommandThreeValueConverter}">
+                                                <Binding Path="Process.Name" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}"></Binding>
+                                                <Binding Path="Process.Command" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}"></Binding>
+                                                <Binding Path="Process.Arguments" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType=Controls:MetroWindow}"></Binding>
+                                            </MultiBinding>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>-->
+                </TextBox>
+            </DockPanel>
+        </DockPanel>
+        <!-- ok and cancel buttons -->
+        <StackPanel Grid.Row="1" Margin="0,10,0,0" Orientation="Horizontal">
+            <Button IsDefault="True" Width="100" Click="ButtonOK_Click">OK</Button>
+            <Button IsCancel="True" Margin="10,0,0,0" Width="100" Click="ButtonCancel_Click">Cancel</Button>
+        </StackPanel>
+    </Grid>
+</Controls:MetroWindow>
