@@ -53,10 +53,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Input.Manipulations" />
-    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.1.4.3\lib\net45\System.Windows.Interactivity.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -80,6 +76,7 @@
     <Compile Include="UIHelpers\EqualityMultiConverter.cs" />
     <Compile Include="UIHelpers\FullCommandMultiConverter.cs" />
     <Compile Include="UIHelpers\FullCommandConverter.cs" />
+    <Compile Include="UIHelpers\IsNullConverter.cs" />
     <Compile Include="UIHelpers\ORConverter.cs" />
     <Compile Include="UIHelpers\ShortPathConverter.cs" />
     <Compile Include="UIHelpers\UIExtensions.cs" />

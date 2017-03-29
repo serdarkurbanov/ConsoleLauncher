@@ -40,5 +40,4 @@ C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLaun
 C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\obj\Debug\ConsoleLauncher.csproj.GenerateResource.Cache
 C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\obj\Debug\UI\ProcessEditor.g.cs
 C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\obj\Debug\UI\ProcessEditor.baml
-C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\obj\Debug\ConsoleLauncher.csprojResolveAssemblyReference.cache
 C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\bin\Debug\launcher_config.json

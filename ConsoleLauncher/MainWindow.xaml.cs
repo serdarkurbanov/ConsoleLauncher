@@ -25,7 +25,7 @@ namespace ConsoleLauncher
         {
             InitializeComponent();
 
-            _folderContainer = Processes.ProcessSaver.Restore(Dispatcher);
+            _folderContainer = Processes.ProcessSaver.Restore(Dispatcher); 
 
             PART_ProcessesTreeView.DataContext = _folderContainer;
         }

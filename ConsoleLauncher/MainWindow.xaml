@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:ConsoleLauncher"
+        xmlns:local_ui="clr-namespace:ConsoleLauncher.UI"
         xmlns:local_processes="clr-namespace:ConsoleLauncher.Processes"         
         xmlns:local_helpers="clr-namespace:ConsoleLauncher.UIHelpers"
         mc:Ignorable="d"
@@ -24,9 +25,16 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- converters -->
+            <local_helpers:IsNullConverter x:Key="IsNullConverter"></local_helpers:IsNullConverter>
             <local_helpers:ORConverter x:Key="OR"></local_helpers:ORConverter>
             <local_helpers:AggregateConverter x:Key="AggregateConverter"/>
             <local_helpers:ShortPathConverter x:Key="ShortPathConverter"/>
+            <!-- key bindings to start and stop -->
+            <InputBindingCollection x:Key="StartStopKeyBindings" x:Shared="False">
+                <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding StopCommand}"></KeyBinding>
+                <KeyBinding Key="Space" Command="{Binding PauseCommand}"></KeyBinding>
+                <KeyBinding Key="Return" Command="{Binding StartCommand}"></KeyBinding>
+            </InputBindingCollection>
             <!-- styles for controls -->
             <Style x:Key="ConsolasTextBlock" TargetType="{x:Type TextBlock}">
                 <Style.Setters>
@@ -108,15 +116,7 @@
                 <!-- style to make all nodes expanded -->
                 <TreeView.ItemContainerStyle>
                     <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource {x:Type TreeViewItem}}">
-                        <Setter Property="local_helpers:UIExtensions.InputBindings">
-                            <Setter.Value>
-                                <InputBindingCollection>
-                                    <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding ElementName=PART_ProcessesTreeView, Path=SelectedItem.StopCommand}"></KeyBinding>
-                                    <KeyBinding Key="Space" Command="{Binding ElementName=PART_ProcessesTreeView, Path=SelectedItem.PauseCommand}"></KeyBinding>
-                                    <KeyBinding Key="Return" Command="{Binding ElementName=PART_ProcessesTreeView, Path=SelectedItem.StartCommand}"></KeyBinding>
-                                </InputBindingCollection>
-                            </Setter.Value>
-                        </Setter>
+                        <Setter Property="local_helpers:UIExtensions.InputBindings" Value="{DynamicResource StartStopKeyBindings}"></Setter>
                         <Setter Property="TreeViewItem.IsExpanded" Value="True"></Setter>
                     </Style>
                 </TreeView.ItemContainerStyle>
@@ -156,33 +156,6 @@
                                 </ContextMenu>
                             </StackPanel.ContextMenu>
                             <!-- popup to modify the command -->
-                            <!--<Popup HorizontalAlignment="Right" Placement="Bottom" PlacementTarget="{Binding RelativeSource={RelativeSource AncestorType={x:Type StackPanel}}}">
-                                <Popup.RenderTransform>
-                                    <ScaleTransform ScaleX="1" ScaleY="1"></ScaleTransform>
-                                </Popup.RenderTransform>
-                                <Popup.IsOpen>
-                                    <MultiBinding Mode="OneWay" Converter="{StaticResource OR}">
-                                        <Binding Mode="OneWay" RelativeSource="{RelativeSource AncestorType={x:Type StackPanel}}" Path="IsMouseOver"/>
-                                        <Binding RelativeSource="{RelativeSource Self}" Path="IsMouseOver" />
-                                    </MultiBinding>
-                                </Popup.IsOpen>
-                                <Popup.Style>
-                                    <Style TargetType="{x:Type Popup}">
-                                        <Style.Triggers>
-                                            <Trigger Property="IsOpen" Value="True">
-                                                <Trigger.EnterActions>
-                                                    <BeginStoryboard>
-                                                        <Storyboard>
-                                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" Duration="0:0:1" From="0" />
-                                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" Duration="0:0:1" From="0" />
-                                                        </Storyboard>
-                                                    </BeginStoryboard>
-                                                </Trigger.EnterActions>
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Popup.Style>
-                            </Popup>-->
                             <Control Focusable="False" Margin="-16,0,0,0" Template="{StaticResource StatusIndicator}"></Control>
                             <Image Height="16" Width="16" Source="/img/console_small_yellow.png"></Image>
                             <TextBlock FontFamily="Consolas" Margin="3,0,2,0" Text="{Binding Path=Name, Converter={StaticResource ShortPathConverter}}"></TextBlock>
