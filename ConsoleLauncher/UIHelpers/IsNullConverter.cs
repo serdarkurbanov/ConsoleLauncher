@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 
+
 namespace ConsoleLauncher.UIHelpers
 {
     public class IsNullConverter : IValueConverter
