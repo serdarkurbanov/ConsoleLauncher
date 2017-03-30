@@ -146,8 +146,8 @@ namespace ConsoleLauncher.Processes
                         // start process async
                         _internalProcess = new System.Diagnostics.Process();
 
-                        _internalProcess.StartInfo.FileName = Command;
-                        _internalProcess.StartInfo.Arguments = Arguments.Aggregate("", (x,y) => string.Concat(x, " ", y));
+                        _internalProcess.StartInfo.FileName = "cmd.exe";
+                        _internalProcess.StartInfo.Arguments = "/c " + Command + Arguments.Aggregate("", (x,y) => string.Concat(x, " ", y));
                         _internalProcess.StartInfo.UseShellExecute = false;
                         _internalProcess.StartInfo.CreateNoWindow = true;
                         _internalProcess.StartInfo.RedirectStandardError = true;
