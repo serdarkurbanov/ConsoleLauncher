@@ -159,6 +159,7 @@ namespace ConsoleLauncher.Processes
                         _internalProcess.OutputDataReceived += CollectVisibleRecords_Info;
                         _internalProcess.ErrorDataReceived += CollectVisibleRecords_Error;
 
+
                         Task.Run(() =>
                         {
                             try
