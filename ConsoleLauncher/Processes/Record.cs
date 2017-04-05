@@ -13,6 +13,14 @@ namespace ConsoleLauncher.Processes
 
         public DateTime Time { get; set; }
 
+        public DateTime TimeProcessStart { get; set; }
+
+        public TimeSpan TotalProcessorTime { get; set; }
+
+        public long ProcessVirtualMemory { get; set; }
+
+        public int ProcessThreadCount { get; set; }
+
         public string Content { get; set; }
 
         // thread safe counter

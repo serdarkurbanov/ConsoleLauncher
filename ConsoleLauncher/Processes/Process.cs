@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Management;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -66,7 +67,8 @@ namespace ConsoleLauncher.Processes
             {
                 _dispatcher.Invoke(() =>
                 {
-                    AllRecords.Add(Record.FromDataReceived(e, RecordType.Info));
+                    Record r = GetRecord(e, RecordType.Info);
+                    AllRecords.Add(r);
                 });
             }
         }
@@ -76,7 +78,8 @@ namespace ConsoleLauncher.Processes
             {
                 _dispatcher.Invoke(() =>
                 {
-                    AllRecords.Add(Record.FromDataReceived(e, RecordType.Error));
+                    Record r = GetRecord(e, RecordType.Error);
+                    AllRecords.Add(r);
                 });
             }
         }
@@ -86,7 +89,8 @@ namespace ConsoleLauncher.Processes
             {
                 _dispatcher.Invoke(() =>
                 {
-                    VisibleRecords.Add(Record.FromDataReceived(e, RecordType.Info));
+                    Record r = GetRecord(e, RecordType.Info);
+                    VisibleRecords.Add(r);
                 });
             }
         }
@@ -96,9 +100,25 @@ namespace ConsoleLauncher.Processes
             {
                 _dispatcher.Invoke(() =>
                 {
-                    VisibleRecords.Add(Record.FromDataReceived(e, RecordType.Error));
+                    Record r = GetRecord(e, RecordType.Error);
+                    VisibleRecords.Add(r);
                 });
             }
+        }
+
+        // get record for this output data
+        private Record GetRecord(System.Diagnostics.DataReceivedEventArgs e, RecordType recType)
+        {
+            Record r = Record.FromDataReceived(e, recType);
+            if (_internalProcess != null)
+            {
+                r.TimeProcessStart = _internalProcess.StartTime;
+                r.TotalProcessorTime = _internalProcess.TotalProcessorTime;
+                r.ProcessVirtualMemory = _internalProcess.VirtualMemorySize64;
+                r.ProcessThreadCount = _internalProcess.Threads.Count;
+            }
+
+            return r;
         }
 
         // starting/stopping/pausing processes
@@ -203,11 +223,16 @@ namespace ConsoleLauncher.Processes
             {
                 try
                 {
-                    _internalProcess.Kill();
+                    _internalProcess.OutputDataReceived -= CollectVisibleRecords_Info;
+                    _internalProcess.ErrorDataReceived -= CollectVisibleRecords_Error;
+                    _internalProcess.OutputDataReceived -= CollectAllRecords_Info;
+                    _internalProcess.ErrorDataReceived -= CollectAllRecords_Error;
+
+                    KillProcess(_internalProcess.Id);
                 }
                 catch
                 {
-                    // do nothing
+                    // process already killed -> do nothing
                 }
                 finally
                 {
@@ -234,10 +259,33 @@ namespace ConsoleLauncher.Processes
                     // process is already stopped => do nothing
                     break;
                 case ProcessStatus.Paused:
-                    // process is already paused => do nothing
+                    // process is paused => start tracking it again
+                    _StartProcess();
+                    break;
                 default:
                     throw new Exception($"unknown process status: {Status}");
                     break;
+            }
+        }
+
+        // kill child processes
+        private static void KillProcess(int pid)
+        {
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher
+              ("Select * From Win32_Process Where ParentProcessID=" + pid);
+            ManagementObjectCollection moc = searcher.Get();
+            foreach (ManagementObject mo in moc)
+            {
+                KillProcess(Convert.ToInt32(mo["ProcessID"]));
+            }
+            try
+            {
+                var proc = System.Diagnostics.Process.GetProcessById(pid);
+                proc.Kill();
+            }
+            catch (ArgumentException)
+            {
+                // Process already exited.
             }
         }
 
