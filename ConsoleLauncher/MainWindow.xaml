@@ -9,9 +9,9 @@
         xmlns:local_processes="clr-namespace:ConsoleLauncher.Processes"         
         xmlns:local_helpers="clr-namespace:ConsoleLauncher.UIHelpers"
         mc:Ignorable="d"
-        Title="Launcher" Height="550" Width="825"
+        Title="Launcher" Height="550" Width="825" 
         BorderBrush="{DynamicResource AccentColorBrush}"
-        BorderThickness="1">
+        BorderThickness="1" x:Name="ConsoleManager">
     <Controls:MetroWindow.Resources>
         <ResourceDictionary>
             <!-- mahapps style -->
@@ -34,6 +34,10 @@
                 <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding StopCommand}"></KeyBinding>
                 <KeyBinding Key="Space" Command="{Binding PauseCommand}"></KeyBinding>
                 <KeyBinding Key="Return" Command="{Binding StartCommand}"></KeyBinding>
+            </InputBindingCollection>
+            <InputBindingCollection x:Key="CopyPasteBindings">
+                <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding ElementName=ConsoleManager, Path=CopyCommand}">
+                </KeyBinding>
             </InputBindingCollection>
             <!-- styles for controls -->
             <Style x:Key="ConsolasTextBlock" TargetType="{x:Type TextBlock}">
@@ -88,6 +92,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="25"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
         </Grid.RowDefinitions>
         <!-- menu -->
         <Grid Grid.Row="0">
@@ -164,9 +169,15 @@
                     </DataTemplate>
                 </TreeView.Resources>
             </TreeView>
-            <!-- output from processes -->
+            <!-- output from processes - list of records -->
             <Grid Grid.Column="2">
-                <ListBox local_helpers:UIExtensions.ScrollOnNewItem="True" SelectionMode="Multiple" ItemsSource="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.VisibleRecords}">
+                <ListBox Name="PART_RecordsListBox" local_helpers:UIExtensions.ScrollOnNewItem="True" SelectionMode="Extended"  ItemsSource="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.VisibleRecords}">
+                    <ListBox.Style>
+                        <Style TargetType="{x:Type ListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
+                            <Setter Property="local_helpers:UIExtensions.InputBindings" Value="{StaticResource CopyPasteBindings}">
+                            </Setter>
+                        </Style>
+                    </ListBox.Style>
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock FontFamily="Courier New" Text="{Binding Content}"></TextBlock>
@@ -174,6 +185,16 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
             </Grid>
+        </Grid>
+        <!-- plots of cpu load etc hiding behind the expander -->
+        <Grid Grid.Row="2">
+            <Expander Name="PART_ResourcesExpander" Header="RESOURSES">
+                <StackPanel Margin="10,4,0,0">
+                    <CheckBox Margin="4" Content="Option 1" />
+                    <CheckBox Margin="4" Content="Option 2" />
+                    <CheckBox Margin="4" Content="Option 3" />
+                </StackPanel>
+            </Expander>
         </Grid>
     </Grid>
 </Controls:MetroWindow>

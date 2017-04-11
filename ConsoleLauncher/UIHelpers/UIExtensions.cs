@@ -153,5 +153,136 @@ namespace ConsoleLauncher.UIHelpers
         #region editable tooltip
 
         #endregion
+
+        #region drag selection for ListBox
+        // taken from http://stackoverflow.com/questions/2869566/wpf-listview-drag-select-multiple-items
+
+        // need a static reference to the listbox otherwise it can't be accessed
+        // (this only happened in the project I'm working on, if you're using a regular ListBox, with regular ListBoxItems you can get the ListBox from the ListBoxItems)
+        public static ListBox ListBox { get; private set; }
+
+        public static bool GetIsDragSelectionEnabled(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsDragSelectionEnabledProperty);
+        }
+
+        public static void SetIsDragSelectionEnabled(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsDragSelectionEnabledProperty, value);
+        }
+
+        public static readonly DependencyProperty IsDragSelectionEnabledProperty =
+            DependencyProperty.RegisterAttached("IsDragSelectingEnabled", typeof(bool), typeof(UIExtensions), new UIPropertyMetadata(false, IsDragSelectingEnabledPropertyChanged));
+
+        public static void IsDragSelectingEnabledPropertyChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            ListBox listBox = o as ListBox;
+
+            bool isDragSelectionEnabled = UIExtensions.GetIsDragSelectionEnabled(listBox);
+
+            // if DragSelection is enabled
+            if (isDragSelectionEnabled)
+            {
+                // set the listbox's selection mode to multiple ( didn't work with extended )
+                listBox.SelectionMode = SelectionMode.Multiple;
+
+                // set the static listbox property
+                UIExtensions.ListBox = listBox;
+
+                // and subscribe to the required events to handle the drag selection and the attached properties
+                listBox.PreviewMouseLeftButtonDown += new MouseButtonEventHandler(UIExtensions.listBox_PreviewMouseLeftButtonDown);
+                listBox.PreviewMouseRightButtonDown += new MouseButtonEventHandler(listBox_PreviewMouseRightButtonDown);
+                listBox.MouseLeftButtonUp += new MouseButtonEventHandler(UIExtensions.listBox_MouseLeftButtonUp);
+            }
+            else // is selection is disabled
+            {
+                // set selection mode to the default
+                listBox.SelectionMode = SelectionMode.Single;
+
+                // dereference the listbox
+                UIExtensions.ListBox = null;
+
+                // unsuscribe from the events
+                listBox.PreviewMouseLeftButtonDown -= new MouseButtonEventHandler(UIExtensions.listBox_PreviewMouseLeftButtonDown);
+                listBox.MouseLeftButtonUp -= new MouseButtonEventHandler(UIExtensions.listBox_MouseLeftButtonUp);
+                listBox.MouseLeftButtonUp -= new MouseButtonEventHandler(UIExtensions.listBox_MouseLeftButtonUp);
+            }
+        }
+
+        static void listBox_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // to prevent the listbox from selecting / deselecting wells on right click
+            e.Handled = true;
+        }
+
+        private static void listBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // notify the helper class that the listbox has initiated the drag click
+            UIExtensions.SetIsDragClickStarted(UIExtensions.ListBox, true);
+        }
+
+        private static void listBox_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            // notify the helper class that the list box has terminated the drag click
+            UIExtensions.SetIsDragClickStarted(UIExtensions.ListBox, false);
+        }
+
+        public static bool GetIsDragSelecting(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsDragSelectingProperty);
+        }
+
+        public static void SetIsDragSelecting(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsDragSelectingProperty, value);
+        }
+
+        public static readonly DependencyProperty IsDragSelectingProperty =
+            DependencyProperty.RegisterAttached("IsDragSelecting", typeof(bool), typeof(UIExtensions), new UIPropertyMetadata(false, IsDragSelectingPropertyChanged));
+
+        public static void IsDragSelectingPropertyChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            ListBoxItem item = o as ListBoxItem;
+
+            bool clickInitiated = UIExtensions.GetIsDragClickStarted(UIExtensions.ListBox);
+
+            // this is where the item.Parent was null, it was supposed to be the ListBox, I guess it's null because items are not
+            // really ListBoxItems but are wells
+            if (clickInitiated)
+            {
+                bool isDragSelecting = UIExtensions.GetIsDragSelecting(item);
+
+                if (isDragSelecting)
+                {
+                    // using the ListBox static reference because could not get to it through the item.Parent property
+                    UIExtensions.ListBox.SelectedItems.Add(item);
+                }
+            }
+        }
+
+
+        public static bool GetIsDragClickStarted(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsDragClickStartedProperty);
+        }
+
+        public static void SetIsDragClickStarted(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsDragClickStartedProperty, value);
+        }
+
+        public static readonly DependencyProperty IsDragClickStartedProperty =
+            DependencyProperty.RegisterAttached("IsDragClickStarted", typeof(bool), typeof(UIExtensions), new UIPropertyMetadata(false, IsDragClickStartedPropertyChanged));
+
+        public static void IsDragClickStartedPropertyChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        {
+            bool isDragClickStarted = UIExtensions.GetIsDragClickStarted(UIExtensions.ListBox);
+
+            // if click has been drag click has started, clear the current selected items and start drag selection operation again
+            if (isDragClickStarted)
+                UIExtensions.ListBox.SelectedItems.Clear();
+        }
+
+        #endregion drag selection for ListBox
     }
 }
