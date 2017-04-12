@@ -49,6 +49,14 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OxyPlot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.Core.1.0.0\lib\net45\OxyPlot.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="OxyPlot.Wpf, Version=1.0.0.0, Culture=neutral, PublicKeyToken=75e952ba404cdbb0, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.Wpf.1.0.0\lib\net45\OxyPlot.Wpf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Management" />
@@ -72,13 +80,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Processes\IUpdateResourceRecords.cs" />
     <Compile Include="Processes\ProcessSaver.cs" />
+    <Compile Include="Processes\ResourceUsageRecord.cs" />
     <Compile Include="UIHelpers\AggregateConverter.cs" />
     <Compile Include="UIHelpers\EqualityMultiConverter.cs" />
     <Compile Include="UIHelpers\FullCommandMultiConverter.cs" />
     <Compile Include="UIHelpers\FullCommandConverter.cs" />
     <Compile Include="UIHelpers\IsNullConverter.cs" />
     <Compile Include="UIHelpers\ORConverter.cs" />
+    <Compile Include="UIHelpers\RecordToDataPointConverter.cs" />
     <Compile Include="UIHelpers\ShortPathConverter.cs" />
     <Compile Include="UIHelpers\UIExtensions.cs" />
     <Compile Include="UIHelpers\GenericCommand.cs" />
@@ -106,7 +117,7 @@
     <Compile Include="Processes\Folder.cs" />
     <Compile Include="Processes\FolderContainer.cs" />
     <Compile Include="Processes\Process.cs" />
-    <Compile Include="Processes\Record.cs" />
+    <Compile Include="Processes\OutputRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -8,10 +8,11 @@
         xmlns:local_ui="clr-namespace:ConsoleLauncher.UI"
         xmlns:local_processes="clr-namespace:ConsoleLauncher.Processes"         
         xmlns:local_helpers="clr-namespace:ConsoleLauncher.UIHelpers"
+        xmlns:local_oxy="clr-namespace:OxyPlot.Wpf;assembly=OxyPlot.Wpf"       
         mc:Ignorable="d"
         Title="Launcher" Height="550" Width="825" 
         BorderBrush="{DynamicResource AccentColorBrush}"
-        BorderThickness="1" x:Name="ConsoleManager">
+        BorderThickness="1" x:Name="ConsoleManager" Closing="ConsoleManager_Closing">
     <Controls:MetroWindow.Resources>
         <ResourceDictionary>
             <!-- mahapps style -->
@@ -25,6 +26,7 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- converters -->
+            <local_helpers:RecordToDataPointConverter x:Key="RecordToDataPointConverter"></local_helpers:RecordToDataPointConverter>
             <local_helpers:IsNullConverter x:Key="IsNullConverter"></local_helpers:IsNullConverter>
             <local_helpers:ORConverter x:Key="OR"></local_helpers:ORConverter>
             <local_helpers:AggregateConverter x:Key="AggregateConverter"/>
@@ -86,13 +88,18 @@
                     </Image.Style>
                 </Image>
             </ControlTemplate>
+            <!-- template for header of a tabItem -->
+            <DataTemplate x:Key="TabItemHeaderTemplate">
+                <TextBlock Text="{Binding Mode=OneWay}" FontSize="14"></TextBlock>
+            </DataTemplate>
         </ResourceDictionary>
     </Controls:MetroWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
         <!-- menu -->
         <Grid Grid.Row="0">
@@ -187,13 +194,51 @@
             </Grid>
         </Grid>
         <!-- plots of cpu load etc hiding behind the expander -->
-        <Grid Grid.Row="2">
-            <Expander Name="PART_ResourcesExpander" Header="RESOURSES">
-                <StackPanel Margin="10,4,0,0">
-                    <CheckBox Margin="4" Content="Option 1" />
-                    <CheckBox Margin="4" Content="Option 2" />
-                    <CheckBox Margin="4" Content="Option 3" />
-                </StackPanel>
+        <GridSplitter Grid.Row="2" VerticalAlignment="Center" IsEnabled="False" IsManipulationEnabled="False" HorizontalAlignment="Stretch" Height="2" Background="Orange"></GridSplitter>
+        <Grid Grid.Row="3">
+            <Expander BorderThickness="0" Name="PART_ResourcesExpander" Header="RESOURSES" Background="{Binding ElementName=ConsoleManager, Path=Background}">
+                <TabControl Height="220">
+                    <TabItem Header="CPU" HeaderTemplate="{StaticResource TabItemHeaderTemplate}">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                            <local_oxy:Plot Background="{Binding ElementName=ConsoleManager, Path=Background}">
+                                <local_oxy:Plot.Series>
+                                    <local_oxy:LineSeries ItemsSource="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.CPUUsage, Converter={StaticResource RecordToDataPointConverter}}">
+                                    </local_oxy:LineSeries>
+                                </local_oxy:Plot.Series>
+                            </local_oxy:Plot>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Memory" HeaderTemplate="{StaticResource TabItemHeaderTemplate}">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                            <local_oxy:Plot Background="{Binding ElementName=ConsoleManager, Path=Background}">
+                                <local_oxy:Plot.Series>
+                                    <local_oxy:LineSeries ItemsSource="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.MemoryUsage, Converter={StaticResource RecordToDataPointConverter}}">
+                                    </local_oxy:LineSeries>
+                                </local_oxy:Plot.Series>
+                            </local_oxy:Plot>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Disk" HeaderTemplate="{StaticResource TabItemHeaderTemplate}">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                            <local_oxy:Plot Background="{Binding ElementName=ConsoleManager, Path=Background}">
+                                <local_oxy:Plot.Series>
+                                    <local_oxy:LineSeries ItemsSource="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.DiskUsage, Converter={StaticResource RecordToDataPointConverter}}">
+                                    </local_oxy:LineSeries>
+                                </local_oxy:Plot.Series>
+                            </local_oxy:Plot>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Thread count" HeaderTemplate="{StaticResource TabItemHeaderTemplate}">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                            <local_oxy:Plot Background="{Binding ElementName=ConsoleManager, Path=Background}">
+                                <local_oxy:Plot.Series>
+                                    <local_oxy:LineSeries ItemsSource="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.ThreadUsage, Converter={StaticResource RecordToDataPointConverter}}">
+                                    </local_oxy:LineSeries>
+                                </local_oxy:Plot.Series>
+                            </local_oxy:Plot>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
             </Expander>
         </Grid>
     </Grid>

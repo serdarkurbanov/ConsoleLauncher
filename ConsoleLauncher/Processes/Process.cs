@@ -10,7 +10,7 @@ using System.Windows.Input;
 
 namespace ConsoleLauncher.Processes
 {
-    public class Process : INotifyPropertyChanged, IDisposable
+    public class Process : INotifyPropertyChanged, IDisposable, IUpdateResourceRecords
     {
         private System.Windows.Threading.Dispatcher _dispatcher;
         private Folder _parentFolder;
@@ -20,7 +20,9 @@ namespace ConsoleLauncher.Processes
             _dispatcher = dispatcher;
         }
 
+        // internal process and sync object
         System.Diagnostics.Process _internalProcess;
+        object _internalProcessSync = new object();
 
         // UI elements
         // name displayed
@@ -34,12 +36,25 @@ namespace ConsoleLauncher.Processes
         public ObservableCollection<string> Arguments { get { return _arguments; } set { _arguments = value; _dispatcher.Invoke(() => RaisePropertyChanged("Arguments")); } }
 
         // all output from the process
-        List<Record> _allRecords = new List<Record>();
-        public List<Record> AllRecords { get { return _allRecords; } }
+        List<OutputRecord> _allRecords = new List<OutputRecord>();
+        public List<OutputRecord> AllRecords { get { return _allRecords; } }
 
         // visible output from the process
-        ObservableCollection<Record> _visibleRecords = new ObservableCollection<Record>();
-        public ObservableCollection<Record> VisibleRecords { get { return _visibleRecords; } }
+        ObservableCollection<OutputRecord> _visibleRecords = new ObservableCollection<OutputRecord>();
+        public ObservableCollection<OutputRecord> VisibleRecords { get { return _visibleRecords; } }
+
+        // collection of resource usage
+        ObservableCollection<ResourceUsageRecord> _cpuUsage = new ObservableCollection<ResourceUsageRecord>();
+        public ObservableCollection<ResourceUsageRecord> CPUUsage { get { return _cpuUsage; } }
+
+        ObservableCollection<ResourceUsageRecord> _memoryUsage = new ObservableCollection<ResourceUsageRecord>();
+        public ObservableCollection<ResourceUsageRecord> MemoryUsage { get { return _memoryUsage; } }
+
+        ObservableCollection<ResourceUsageRecord> _diskUsage = new ObservableCollection<ResourceUsageRecord>();
+        public ObservableCollection<ResourceUsageRecord> DiskUsage { get { return _diskUsage; } }
+
+        ObservableCollection<ResourceUsageRecord> _threadUsage = new ObservableCollection<ResourceUsageRecord>();
+        public ObservableCollection<ResourceUsageRecord> ThreadUsage { get { return _threadUsage; } }
 
         ProcessStatus _status = ProcessStatus.Stopped;
         public ProcessStatus Status
@@ -57,8 +72,16 @@ namespace ConsoleLauncher.Processes
             }
         }
 
-
-        public DateTime StartTime { get { return _internalProcess == null ? _internalProcess.StartTime : new DateTime(); } }
+        public DateTime StartTime
+        {
+            get
+            {
+                lock (_internalProcessSync)
+                {
+                    return _internalProcess == null ? _internalProcess.StartTime : new DateTime();
+                }
+            }
+        }
 
         // collecting data into record containers
         private void CollectAllRecords_Info(object sender, System.Diagnostics.DataReceivedEventArgs e)
@@ -67,7 +90,7 @@ namespace ConsoleLauncher.Processes
             {
                 _dispatcher.Invoke(() =>
                 {
-                    Record r = GetRecord(e, RecordType.Info);
+                    OutputRecord r = GetRecord(e, RecordType.Info);
                     AllRecords.Add(r);
                 });
             }
@@ -78,7 +101,7 @@ namespace ConsoleLauncher.Processes
             {
                 _dispatcher.Invoke(() =>
                 {
-                    Record r = GetRecord(e, RecordType.Error);
+                    OutputRecord r = GetRecord(e, RecordType.Error);
                     AllRecords.Add(r);
                 });
             }
@@ -89,7 +112,7 @@ namespace ConsoleLauncher.Processes
             {
                 _dispatcher.Invoke(() =>
                 {
-                    Record r = GetRecord(e, RecordType.Info);
+                    OutputRecord r = GetRecord(e, RecordType.Info);
                     VisibleRecords.Add(r);
                 });
             }
@@ -100,22 +123,26 @@ namespace ConsoleLauncher.Processes
             {
                 _dispatcher.Invoke(() =>
                 {
-                    Record r = GetRecord(e, RecordType.Error);
+                    OutputRecord r = GetRecord(e, RecordType.Error);
                     VisibleRecords.Add(r);
                 });
             }
         }
 
         // get record for this output data
-        private Record GetRecord(System.Diagnostics.DataReceivedEventArgs e, RecordType recType)
+        private OutputRecord GetRecord(System.Diagnostics.DataReceivedEventArgs e, RecordType recType)
         {
-            Record r = Record.FromDataReceived(e, recType);
-            if (_internalProcess != null)
+            OutputRecord r = OutputRecord.FromDataReceived(e, recType);
+
+            lock (_internalProcessSync)
             {
-                r.TimeProcessStart = _internalProcess.StartTime;
-                r.TotalProcessorTime = _internalProcess.TotalProcessorTime;
-                r.ProcessVirtualMemory = _internalProcess.VirtualMemorySize64;
-                r.ProcessThreadCount = _internalProcess.Threads.Count;
+                if (_internalProcess != null)
+                {
+                    r.TimeProcessStart = _internalProcess.StartTime;
+                    r.TotalProcessorTime = _internalProcess.TotalProcessorTime;
+                    r.ProcessVirtualMemory = _internalProcess.WorkingSet64;
+                    r.ProcessThreadCount = _internalProcess.Threads.Count;
+                }
             }
 
             return r;
@@ -141,9 +168,12 @@ namespace ConsoleLauncher.Processes
                             }
                         }
 
-                        // track data again
-                        _internalProcess.OutputDataReceived += CollectVisibleRecords_Info;
-                        _internalProcess.ErrorDataReceived += CollectVisibleRecords_Error;
+                        lock (_internalProcessSync)
+                        {
+                            // track data again
+                            _internalProcess.OutputDataReceived += CollectVisibleRecords_Info;
+                            _internalProcess.ErrorDataReceived += CollectVisibleRecords_Error;
+                        }
 
                         Status = ProcessStatus.Running;
                     }
@@ -161,6 +191,10 @@ namespace ConsoleLauncher.Processes
                             {
                                 _visibleRecords.Clear();
                             }
+                            CPUUsage.Clear();
+                            MemoryUsage.Clear();
+                            DiskUsage.Clear();
+                            ThreadUsage.Clear();
                         });
 
                         // start process async
@@ -192,7 +226,7 @@ namespace ConsoleLauncher.Processes
                             catch (Exception e)
                             {
                                 // application doesn't start => write about it
-                                Record r = new Record() { Content = e.Message, RecordType = RecordType.Error, Time = DateTime.Now };
+                                OutputRecord r = new OutputRecord() { Content = e.Message, RecordType = RecordType.Error, Time = DateTime.Now };
                                 _dispatcher.Invoke(() =>
                                 {
                                     VisibleRecords.Add(r);
@@ -219,25 +253,28 @@ namespace ConsoleLauncher.Processes
         }
         private void _StopProcess()
         {
-            if (_internalProcess != null)
+            lock (_internalProcessSync)
             {
-                try
+                if (_internalProcess != null)
                 {
-                    _internalProcess.OutputDataReceived -= CollectVisibleRecords_Info;
-                    _internalProcess.ErrorDataReceived -= CollectVisibleRecords_Error;
-                    _internalProcess.OutputDataReceived -= CollectAllRecords_Info;
-                    _internalProcess.ErrorDataReceived -= CollectAllRecords_Error;
+                    try
+                    {
+                        _internalProcess.OutputDataReceived -= CollectVisibleRecords_Info;
+                        _internalProcess.ErrorDataReceived -= CollectVisibleRecords_Error;
+                        _internalProcess.OutputDataReceived -= CollectAllRecords_Info;
+                        _internalProcess.ErrorDataReceived -= CollectAllRecords_Error;
 
-                    KillProcess(_internalProcess.Id);
-                }
-                catch
-                {
-                    // process already killed -> do nothing
-                }
-                finally
-                {
-                    _internalProcess.Dispose();
-                    _internalProcess = null;
+                        KillProcess(_internalProcess.Id);
+                    }
+                    catch
+                    {
+                        // process already killed -> do nothing
+                    }
+                    finally
+                    {
+                        _internalProcess.Dispose();
+                        _internalProcess = null;
+                    }
                 }
             }
 
@@ -376,8 +413,10 @@ namespace ConsoleLauncher.Processes
                 return new UIHelpers.GenericCommand(
                     obj =>
                     {
-                        _parentFolder.Processes.Remove(this);
-
+                        lock (_parentFolder.Processes)
+                        {
+                            _parentFolder.Processes.Remove(this);
+                        }
                         // save in config
                         Save();
 
@@ -450,6 +489,38 @@ namespace ConsoleLauncher.Processes
                 result.Arguments.Add(a);
 
             return result;
+        }
+
+        // update resource usage on timer
+        public void UpdateResourceRecords()
+        {
+            if (Status == ProcessStatus.Stopped)
+                return;
+
+            lock (_internalProcessSync)
+            {
+                if (_internalProcess != null)
+                {
+                    _dispatcher.Invoke(() =>
+                    {
+                        try
+                        {
+                            CPUUsage.Add(new ResourceUsageRecord(20));
+                            MemoryUsage.Add(new ResourceUsageRecord(Convert.ToDouble(_internalProcess.WorkingSet64)));
+                            DiskUsage.Add(new ResourceUsageRecord(Convert.ToDouble(100)));
+                            ThreadUsage.Add(new ResourceUsageRecord(Convert.ToDouble(_internalProcess.Threads.Count)));
+                        }
+                        catch (InvalidOperationException ie)
+                        {
+                            // do nothing
+                        }
+                        catch (Exception e)
+                        {
+                            // do nothing
+                        }
+                    });
+                }
+            }
         }
     }
 

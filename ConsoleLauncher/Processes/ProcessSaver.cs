@@ -27,20 +27,29 @@ namespace ConsoleLauncher.Processes
 
         public static void Save(FolderContainer container)
         {
-            var saveData = container.Folders.Select(
-                f => new FolderConfig()
+            lock (container.Folders)
+            {
+                var saveData = container.Folders.Select(
+                f =>
                 {
-                    Path = f.Path,
-                    Processes = f.Processes.Select(
-                        p => new ProcessConfig
+                    lock (f.Processes)
+                    {
+                        return new FolderConfig()
                         {
-                            Name = p.Name,
-                            Command = p.Command,
-                            Arguments = p.Arguments.ToList()
-                        }).ToList()
+                            Path = f.Path,
+                            Processes = f.Processes.Select(
+                            p => new ProcessConfig
+                            {
+                                Name = p.Name,
+                                Command = p.Command,
+                                Arguments = p.Arguments.ToList()
+                            }).ToList()
+                        };
+                    }
                 }).ToList();
 
-            System.IO.File.WriteAllText(ConfigFileName, Newtonsoft.Json.JsonConvert.SerializeObject(saveData));
+                System.IO.File.WriteAllText(ConfigFileName, Newtonsoft.Json.JsonConvert.SerializeObject(saveData));
+            }
         }
 
         public static FolderContainer Restore(System.Windows.Threading.Dispatcher dispatcher)

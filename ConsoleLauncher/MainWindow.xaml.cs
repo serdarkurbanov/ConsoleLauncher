@@ -13,6 +13,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using OxyPlot.Wpf;
+using System.Collections.ObjectModel;
+using OxyPlot;
 
 namespace ConsoleLauncher
 {
@@ -28,7 +31,12 @@ namespace ConsoleLauncher
             _folderContainer = Processes.ProcessSaver.Restore(Dispatcher);
 
             PART_ProcessesTreeView.DataContext = _folderContainer;
+
+            _updateResourceTimer = new System.Threading.Timer((obj) => _folderContainer.UpdateResourceRecords(), null, 0, 1000);
         }
+
+        // timer for updating resource usage
+        System.Threading.Timer _updateResourceTimer;
 
         // container for folders
         Processes.FolderContainer _folderContainer;
@@ -44,7 +52,7 @@ namespace ConsoleLauncher
                         StringBuilder sb = new StringBuilder();
 
                         // selected items should be ordered by id, otherwise the order can be not normal
-                        foreach (var r in PART_RecordsListBox.SelectedItems.OfType<Processes.Record>().OrderBy(x => x.ID))
+                        foreach (var r in PART_RecordsListBox.SelectedItems.OfType<Processes.OutputRecord>().OrderBy(x => x.ID))
                             sb.AppendLine(r.Content);
 
                         Clipboard.Clear();
@@ -52,6 +60,12 @@ namespace ConsoleLauncher
                     },
                     obj => true);
             }
+        }
+
+        // kill all processes and dispose all resources when closing
+        private void ConsoleManager_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _folderContainer.Dispose();
         }
     }
 }

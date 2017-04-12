@@ -10,7 +10,7 @@ using System.Windows.Input;
 namespace ConsoleLauncher.Processes
 {
     // viewmodel for folder
-    public class Folder : INotifyPropertyChanged, IDisposable
+    public class Folder : INotifyPropertyChanged, IDisposable, IUpdateResourceRecords
     {
         // dispatcher of the window
         private System.Windows.Threading.Dispatcher _dispatcher;
@@ -46,10 +46,14 @@ namespace ConsoleLauncher.Processes
                         {
                             // new process successfully added => add it to the list
                             Process viewProcess = Process.From(p, _dispatcher);
-                            Processes.Add(viewProcess);
 
+                            lock (Processes)
+                            {
+                                Processes.Add(viewProcess);
+                            }
                             // save in config
                             Save();
+                            
                         }
                     }, 
                     obj => { return true; });
@@ -82,10 +86,13 @@ namespace ConsoleLauncher.Processes
                 return new UIHelpers.GenericCommand(
                     obj =>
                     {
-                        _parentContainer.Folders.Remove(this);
-
+                        lock (_parentContainer.Folders)
+                        {
+                            _parentContainer.Folders.Remove(this);
+                        }
                         // save in config
                         Save();
+                        
 
                         this.Dispose();
                     },
@@ -101,16 +108,22 @@ namespace ConsoleLauncher.Processes
                 return new UIHelpers.GenericCommand(
                     obj =>
                     {
-                        // start all processes that can be started
-                        foreach (var p in Processes.Where(x => x.StartCommand.CanExecute(obj)))
+                        lock (Processes)
                         {
-                            p.StartCommand.Execute(obj);
+                            // start all processes that can be started
+                            foreach (var p in Processes.Where(x => x.StartCommand.CanExecute(obj)))
+                            {
+                                p.StartCommand.Execute(obj);
+                            }
                         }
                     },
                     obj =>
                     {
-                        // true if any of the processes can be started
-                        return Processes.Count(x => x.StartCommand.CanExecute(obj)) > 0;
+                        lock (Processes)
+                        {
+                            // true if any of the processes can be started
+                            return Processes.Count(x => x.StartCommand.CanExecute(obj)) > 0;
+                        }
                     });
             }
         }
@@ -121,16 +134,22 @@ namespace ConsoleLauncher.Processes
                 return new UIHelpers.GenericCommand(
                     obj =>
                     {
-                        // start all processes that can be stopped
-                        foreach (var p in Processes.Where(x => x.StopCommand.CanExecute(obj)))
+                        lock (Processes)
                         {
-                            p.StartCommand.Execute(obj);
+                            // start all processes that can be stopped
+                            foreach (var p in Processes.Where(x => x.StopCommand.CanExecute(obj)))
+                            {
+                                p.StartCommand.Execute(obj);
+                            }
                         }
                     },
                     obj =>
                     {
-                        // true if any of the processes can be stopped
-                        return Processes.Count(x => x.StopCommand.CanExecute(obj)) > 0;
+                        lock (Processes)
+                        {
+                            // true if any of the processes can be stopped
+                            return Processes.Count(x => x.StopCommand.CanExecute(obj)) > 0;
+                        }
                     });
             }
         }
@@ -141,16 +160,22 @@ namespace ConsoleLauncher.Processes
                 return new UIHelpers.GenericCommand(
                     obj =>
                     {
-                        // start all processes that can be paused
-                        foreach (var p in Processes.Where(x => x.PauseCommand.CanExecute(obj)))
+                        lock (Processes)
                         {
-                            p.StartCommand.Execute(obj);
+                            // start all processes that can be paused
+                            foreach (var p in Processes.Where(x => x.PauseCommand.CanExecute(obj)))
+                            {
+                                p.StartCommand.Execute(obj);
+                            }
                         }
                     },
                     obj =>
                     {
-                        // true if any of the processes can be paused
-                        return Processes.Count(x => x.PauseCommand.CanExecute(obj)) > 0;
+                        lock (Processes)
+                        {
+                            // true if any of the processes can be paused
+                            return Processes.Count(x => x.PauseCommand.CanExecute(obj)) > 0;
+                        }
                     });
             }
         }
@@ -187,6 +212,18 @@ namespace ConsoleLauncher.Processes
         public void Save()
         {
             _parentContainer.Save();
+        }
+
+        // update resource usage on timer
+        public void UpdateResourceRecords()
+        {
+            lock (Processes)
+            {
+                foreach (var p in Processes)
+                {
+                    p.UpdateResourceRecords();
+                }
+            }
         }
     }
 }

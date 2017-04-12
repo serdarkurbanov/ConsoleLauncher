@@ -41,3 +41,9 @@ C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLaun
 C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\obj\Debug\UI\ProcessEditor.g.cs
 C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\obj\Debug\UI\ProcessEditor.baml
 C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\bin\Debug\launcher_config.json
+C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\bin\Debug\OxyPlot.dll
+C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\bin\Debug\OxyPlot.Wpf.dll
+C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\bin\Debug\OxyPlot.pdb
+C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\bin\Debug\OxyPlot.xml
+C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\bin\Debug\OxyPlot.Wpf.pdb
+C:\Users\Kurbanov\Documents\Projects\ConsoleLauncher\ConsoleLauncher\ConsoleLauncher\bin\Debug\OxyPlot.Wpf.xml

@@ -10,7 +10,7 @@ using System.Windows.Threading;
 namespace ConsoleLauncher.Processes
 {
     // container for folders
-    public class FolderContainer
+    public class FolderContainer: IDisposable, IUpdateResourceRecords
     {
         Dispatcher _dispatcher;
 
@@ -35,10 +35,14 @@ namespace ConsoleLauncher.Processes
                         if (d.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                         {
                             f.Path = d.SelectedPath;
-                            Folders.Add(f);
 
-                            // save in config
-                            Save();
+                            lock (Folders)
+                            {
+                                Folders.Add(f);
+
+                                // save in config
+                                Save();
+                            }
                         }
                     },
                     obj => { return true; });
@@ -49,6 +53,40 @@ namespace ConsoleLauncher.Processes
         public void Save()
         {
             ProcessSaver.Save(this);
+        }
+
+
+        // dispose resources
+        private bool _disposed = false;
+        public void Dispose()
+        {
+            if (!_disposed)
+                _Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void _Dispose(bool disposing)
+        {
+            foreach (var f in Folders)
+                f.Dispose();
+
+            _disposed = true;
+        }
+
+        ~FolderContainer()
+        {
+            if (!_disposed)
+                _Dispose(false);
+        }
+
+        // update resource usage on timer
+        public void UpdateResourceRecords()
+        {
+            lock(Folders)
+            {
+                foreach (var f in Folders)
+                    f.UpdateResourceRecords();
+            }
         }
     }
 }

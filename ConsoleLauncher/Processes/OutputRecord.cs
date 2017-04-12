@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ConsoleLauncher.Processes
 {
     // viewmodel for one line received from the process
-    public class Record
+    public class OutputRecord
     {
         private static long _id = 0;
 
@@ -28,9 +28,9 @@ namespace ConsoleLauncher.Processes
 
         public RecordType RecordType { get; set; }
 
-        public static Record FromDataReceived(System.Diagnostics.DataReceivedEventArgs data, RecordType recType)
+        public static OutputRecord FromDataReceived(System.Diagnostics.DataReceivedEventArgs data, RecordType recType)
         {
-            return new Record()
+            return new OutputRecord()
             {
                 Time = DateTime.Now,
                 Content = data.Data,
