@@ -217,12 +217,15 @@ namespace ConsoleLauncher.Processes
         // update resource usage on timer
         public void UpdateResourceRecords()
         {
+            List<Process> processes = new List<Process>();
             lock (Processes)
             {
-                foreach (var p in Processes)
-                {
-                    p.UpdateResourceRecords();
-                }
+                processes = Processes.ToList();
+            }
+
+            foreach (var p in processes)
+            {
+                p.UpdateResourceRecords();
             }
         }
     }

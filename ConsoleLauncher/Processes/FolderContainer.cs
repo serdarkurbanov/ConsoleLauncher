@@ -39,10 +39,9 @@ namespace ConsoleLauncher.Processes
                             lock (Folders)
                             {
                                 Folders.Add(f);
-
-                                // save in config
-                                Save();
                             }
+                            // save in config
+                            Save();
                         }
                     },
                     obj => { return true; });
@@ -82,11 +81,14 @@ namespace ConsoleLauncher.Processes
         // update resource usage on timer
         public void UpdateResourceRecords()
         {
+            List<Folder> folders = new List<Folder>();
             lock(Folders)
             {
-                foreach (var f in Folders)
-                    f.UpdateResourceRecords();
+                folders = Folders.ToList();
             }
+
+            foreach (var f in folders)
+                f.UpdateResourceRecords();
         }
     }
 }

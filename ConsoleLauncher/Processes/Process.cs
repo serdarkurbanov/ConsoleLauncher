@@ -76,54 +76,65 @@ namespace ConsoleLauncher.Processes
         {
             get
             {
+                DateTime t = new DateTime();
                 lock (_internalProcessSync)
                 {
-                    return _internalProcess == null ? _internalProcess.StartTime : new DateTime();
+                    try
+                    {
+                        if (_internalProcess != null)
+                            t = _internalProcess.StartTime;
+                    }
+                    catch (Exception e)
+                    {
+                        // internal process is dead -> do nothing
+                    }
                 }
+
+                return t;
             }
         }
 
         // collecting data into record containers
         private void CollectAllRecords_Info(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
+            OutputRecord r = GetRecord(e, RecordType.Info);
             lock (_allRecords)
             {
                 _dispatcher.Invoke(() =>
                 {
-                    OutputRecord r = GetRecord(e, RecordType.Info);
                     AllRecords.Add(r);
                 });
             }
         }
         private void CollectAllRecords_Error(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
+            OutputRecord r = GetRecord(e, RecordType.Error);
             lock (_allRecords)
             {
                 _dispatcher.Invoke(() =>
                 {
-                    OutputRecord r = GetRecord(e, RecordType.Error);
                     AllRecords.Add(r);
                 });
             }
         }
         private void CollectVisibleRecords_Info(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
+            OutputRecord r = GetRecord(e, RecordType.Info);
             lock (_visibleRecords)
             {
                 _dispatcher.Invoke(() =>
                 {
-                    OutputRecord r = GetRecord(e, RecordType.Info);
                     VisibleRecords.Add(r);
                 });
             }
         }
         private void CollectVisibleRecords_Error(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
+            OutputRecord r = GetRecord(e, RecordType.Error);
             lock (_visibleRecords)
             {
                 _dispatcher.Invoke(() =>
                 {
-                    OutputRecord r = GetRecord(e, RecordType.Error);
                     VisibleRecords.Add(r);
                 });
             }
@@ -138,10 +149,17 @@ namespace ConsoleLauncher.Processes
             {
                 if (_internalProcess != null)
                 {
-                    r.TimeProcessStart = _internalProcess.StartTime;
-                    r.TotalProcessorTime = _internalProcess.TotalProcessorTime;
-                    r.ProcessVirtualMemory = _internalProcess.WorkingSet64;
-                    r.ProcessThreadCount = _internalProcess.Threads.Count;
+                    try
+                    {
+                        r.TimeProcessStart = _internalProcess.StartTime;
+                        r.TotalProcessorTime = _internalProcess.TotalProcessorTime;
+                        r.ProcessVirtualMemory = _internalProcess.WorkingSet64;
+                        r.ProcessThreadCount = _internalProcess.Threads.Count;
+                    }
+                    catch (Exception e)
+                    {
+                        // something happened with internal process -> do nothing
+                    }
                 }
             }
 
@@ -497,30 +515,55 @@ namespace ConsoleLauncher.Processes
             if (Status == ProcessStatus.Stopped)
                 return;
 
+            ResourceUsageRecord cpu = null;
+            ResourceUsageRecord mem = null;
+            ResourceUsageRecord disk = null;
+            ResourceUsageRecord threads = null;
+
             lock (_internalProcessSync)
             {
                 if (_internalProcess != null)
                 {
-                    _dispatcher.Invoke(() =>
+                    try
                     {
-                        try
-                        {
-                            CPUUsage.Add(new ResourceUsageRecord(20));
-                            MemoryUsage.Add(new ResourceUsageRecord(Convert.ToDouble(_internalProcess.WorkingSet64)));
-                            DiskUsage.Add(new ResourceUsageRecord(Convert.ToDouble(100)));
-                            ThreadUsage.Add(new ResourceUsageRecord(Convert.ToDouble(_internalProcess.Threads.Count)));
-                        }
-                        catch (InvalidOperationException ie)
-                        {
-                            // do nothing
-                        }
-                        catch (Exception e)
-                        {
-                            // do nothing
-                        }
-                    });
+                        cpu = new ResourceUsageRecord(20);
+                        mem = new ResourceUsageRecord(Convert.ToDouble(_internalProcess.WorkingSet64));
+                        disk = new ResourceUsageRecord(Convert.ToDouble(100));
+                        threads = new ResourceUsageRecord(Convert.ToDouble(_internalProcess.Threads.Count));
+                    }
+                    catch (Exception e)
+                    {
+                        // something happened to the process while requesting info => do nothing
+                    }
                 }
             }
+
+            _dispatcher.Invoke(() =>
+            {
+                if(cpu != null)
+                {
+                    CPUUsage.Add(cpu);
+                    RaisePropertyChanged("CPUUsage");
+                }
+
+                if(mem != null)
+                {
+                    MemoryUsage.Add(mem);
+                    RaisePropertyChanged("MemoryUsage");
+                }
+
+                if (disk != null)
+                {
+                    DiskUsage.Add(disk);
+                    RaisePropertyChanged("DiskUsage");
+                }
+
+                if (threads != null)
+                {
+                    ThreadUsage.Add(threads);
+                    RaisePropertyChanged("ThreadUsage");
+                }     
+            });
         }
     }
 
