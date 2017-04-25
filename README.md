@@ -1,3 +1,7 @@
+## Download
+
+Pre-release version is available from [release](https://github.com/serdarkurbanov/ConsoleLauncher/releases) section of the repo: [zipped binaries](https://github.com/serdarkurbanov/ConsoleLauncher/releases/download/0.1/ConsoleLauncher.zip)
+
 ## About Console Launcher
 
 Console Launcher is a simple console manager written in C# (WPF). This implies it will work for Windows, unless ported with Mono. As for now, the project is targeting .NET 4.5.2
@@ -5,10 +9,6 @@ Console Launcher is a simple console manager written in C# (WPF). This implies i
 The UI is built using the Metro style provided by MahApps (http://mahapps.com).
 
 ![how it looks](https://cloud.githubusercontent.com/assets/10394306/25364447/85184e90-2930-11e7-9978-9aec3f6ac8f4.png)
-
-## Download
-
-Pre-release version is available from [release](https://github.com/serdarkurbanov/ConsoleLauncher/releases) section of the repo: [zipped binaries](https://github.com/serdarkurbanov/ConsoleLauncher/releases/download/0.1/ConsoleLauncher.zip)
 
 ## What it can do
 
