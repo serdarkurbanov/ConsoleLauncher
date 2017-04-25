@@ -14,4 +14,12 @@ The console manager can be useful in the case of managing large number of proces
 
 Plots of CPU, memory and thread usage provide additional diagnostics (under development). Plots are made using plotting library OxyPlot (https://github.com/oxyplot).
 
-![how it looks with the plots](https://cloud.githubusercontent.com/assets/10394306/25364807/f53c1c40-2932-11e7-9780-b9d3b6115032.png)
+![how it looks with the plots](https://cloud.githubusercontent.com/assets/10394306/25364875/69df5fbc-2933-11e7-86c9-66aa9c3b167b.png)
+
+## Working with the program
+
+The UI is pretty intuitive: adding the folder/process to the tree is made with the context menu of the tree. You can start the selected process by hitting 'return', by hitting a 'play' button at the top of the window or by selecting the relevant menu iem from the context menu.
+
+You can start all the processes for the selected folder in the same way.
+
+To stop the selected process you can press 'CTRL+C', hit the stop button at the top or select 'stop' command from the context menu.
