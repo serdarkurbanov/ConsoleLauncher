@@ -6,6 +6,10 @@ The UI is built using the Metro style provided by MahApps (http://mahapps.com).
 
 ![how it looks](https://cloud.githubusercontent.com/assets/10394306/25364447/85184e90-2930-11e7-9978-9aec3f6ac8f4.png)
 
+## Download
+
+Pre-release version is available from 'release' section: https://github.com/serdarkurbanov/ConsoleLauncher/releases/download/0.1/ConsoleLauncher.zip
+
 ## What it can do
 
 The main thing this application provides is displaying the console output of running programs. Folders and running tasks are displayed in the tree in the left hand side.
