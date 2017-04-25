@@ -13,3 +13,5 @@ The main thing this application provides is displaying the console output of run
 The console manager can be useful in the case of managing large number of processes that need to be started from console.
 
 Plots of CPU, memory and thread usage provide additional diagnostics (under development). Plots are made using plotting library OxyPlot (https://github.com/oxyplot).
+
+![how it looks with the plots](https://cloud.githubusercontent.com/assets/10394306/25364807/f53c1c40-2932-11e7-9780-b9d3b6115032.png)
