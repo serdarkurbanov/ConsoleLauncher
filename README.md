@@ -34,4 +34,4 @@ For example: `ping google.com & ping github.com`
 
 ## Saving the changes
 
-You don't need to do any specific action to save changes you made - the application saves everything automatically on every change (adding/deleting a folder etc.). The settings are written to the file **launcher_config.json** which you can find in the application folder (Newtonsoft.Json is used for reading and writing the settings file see http://www.newtonsoft.com/json).
+You don't need to do any specific action to save changes you made - the application saves everything automatically on every change (adding/deleting a folder etc.). The settings are written to the file **launcher_config.json** which you can find in the application folder (Newtonsoft.Json is used for reading and writing the settings file, see http://www.newtonsoft.com/json).
