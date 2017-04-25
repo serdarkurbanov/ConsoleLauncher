@@ -8,7 +8,7 @@ The UI is built using the Metro style provided by MahApps (http://mahapps.com).
 
 ## Download
 
-Pre-release version is available from 'release' section: https://github.com/serdarkurbanov/ConsoleLauncher/releases/download/0.1/ConsoleLauncher.zip
+Pre-release version is available from [release](https://github.com/serdarkurbanov/ConsoleLauncher/releases) section of the repo: [zipped binaries](https://github.com/serdarkurbanov/ConsoleLauncher/releases/download/0.1/ConsoleLauncher.zip)
 
 ## What it can do
 
