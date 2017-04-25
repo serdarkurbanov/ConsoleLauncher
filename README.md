@@ -29,5 +29,9 @@ The list of records from the console output of the running program supports mult
 'Edit' command from the context menu opens the following window (same window for 'add new'). Note that the name of the program displayed in the tree can be different from the command that you run
 ![consolelauncher_program](https://cloud.githubusercontent.com/assets/10394306/25365102/9cdd4ac2-2934-11e7-9aa3-9fbd65b686f7.png)
 
-You can run a sequence of command in a way you would run it from Windows command line. For example: 
-        `ping google.com & ping github.com`
+You can run a sequence of commands in a way you would run it from Windows command line. 
+For example: `ping google.com & ping github.com`
+
+## Saving the changes
+
+You don't need to do any specific action to save changes you made - the application saves everything automatically on every change (adding/deleting a folder etc.). The settings are written to the file launcher_config.json which you can find in the application folder.
