@@ -23,3 +23,6 @@ The UI is pretty intuitive: adding the folder/process to the tree is made with t
 You can start all the processes for the selected folder in the same way.
 
 To stop the selected process you can press 'CTRL+C', hit the stop button at the top or select 'stop' command from the context menu.
+
+The list of records from the console output of the running program supports multiple selection (with ctrl, shift modifiers) and copy operation (triggered by 'CTRL+C').
+
