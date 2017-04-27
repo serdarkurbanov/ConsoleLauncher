@@ -26,6 +26,10 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseDark.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- converters -->
+            <local_helpers:MaxPlus10PercentConverter x:Key="MaxPlus10PercentConverter"></local_helpers:MaxPlus10PercentConverter>
+            <local_helpers:MinMinus10PercentConverter x:Key="MinMinus10PercentConverter"></local_helpers:MinMinus10PercentConverter>
+            <local_helpers:Plus10PercentConverter x:Key="Plus10PercentConverter"></local_helpers:Plus10PercentConverter>
+            <local_helpers:Minus10PercentConverter x:Key="Minus10PercentConverter"></local_helpers:Minus10PercentConverter>
             <local_helpers:RecordToDataPointConverter x:Key="RecordToDataPointConverter"></local_helpers:RecordToDataPointConverter>
             <local_helpers:IsNullConverter x:Key="IsNullConverter"></local_helpers:IsNullConverter>
             <local_helpers:ORConverter x:Key="OR"></local_helpers:ORConverter>
@@ -201,6 +205,10 @@
                     <TabItem Header="CPU" HeaderTemplate="{StaticResource TabItemHeaderTemplate}">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto">
                             <local_oxy:Plot Background="{Binding ElementName=ConsoleManager, Path=Background}">
+                                <local_oxy:Plot.Axes>
+                                    <local_oxy:DateTimeAxis Position="Bottom"/>
+                                    <local_oxy:LinearAxis Unit="%" Position="Left" Minimum="0" Maximum="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.PeakCPUUsage, Converter={StaticResource Plus10PercentConverter}}" />
+                                </local_oxy:Plot.Axes>
                                 <local_oxy:Plot.Series>
                                     <local_oxy:LineSeries ItemsSource="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.CPUUsage, Converter={StaticResource RecordToDataPointConverter}}">
                                     </local_oxy:LineSeries>
@@ -211,6 +219,10 @@
                     <TabItem Header="Memory" HeaderTemplate="{StaticResource TabItemHeaderTemplate}">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto">
                             <local_oxy:Plot Background="{Binding ElementName=ConsoleManager, Path=Background}">
+                                <local_oxy:Plot.Axes>
+                                    <local_oxy:DateTimeAxis Position="Bottom"/>
+                                    <local_oxy:LinearAxis UseSuperExponentialFormat="True" Position="Left" Minimum="0" Maximum="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.PeakMemoryUsage, Converter={StaticResource Plus10PercentConverter}}" />
+                                </local_oxy:Plot.Axes>
                                 <local_oxy:Plot.Series>
                                     <local_oxy:LineSeries ItemsSource="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.MemoryUsage, Converter={StaticResource RecordToDataPointConverter}}">
                                     </local_oxy:LineSeries>
@@ -218,7 +230,7 @@
                             </local_oxy:Plot>
                         </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="Disk" HeaderTemplate="{StaticResource TabItemHeaderTemplate}">
+                    <!-- <TabItem Header="Disk" HeaderTemplate="{StaticResource TabItemHeaderTemplate}">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto">
                             <local_oxy:Plot Background="{Binding ElementName=ConsoleManager, Path=Background}">
                                 <local_oxy:Plot.Series>
@@ -227,10 +239,14 @@
                                 </local_oxy:Plot.Series>
                             </local_oxy:Plot>
                         </ScrollViewer>
-                    </TabItem>
+                    </TabItem>-->
                     <TabItem Header="Thread count" HeaderTemplate="{StaticResource TabItemHeaderTemplate}">
                         <ScrollViewer HorizontalScrollBarVisibility="Auto">
                             <local_oxy:Plot Background="{Binding ElementName=ConsoleManager, Path=Background}">
+                                <local_oxy:Plot.Axes>
+                                    <local_oxy:DateTimeAxis Position="Bottom"/>
+                                    <local_oxy:LinearAxis Position="Left" Minimum="0" Maximum="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.PeakThreadUsage, Converter={StaticResource Plus10PercentConverter}}" />
+                                </local_oxy:Plot.Axes>
                                 <local_oxy:Plot.Series>
                                     <local_oxy:LineSeries ItemsSource="{Binding Mode=OneWay, ElementName=PART_ProcessesTreeView, Path=SelectedItem.ThreadUsage, Converter={StaticResource RecordToDataPointConverter}}">
                                     </local_oxy:LineSeries>

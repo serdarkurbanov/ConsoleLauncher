@@ -80,6 +80,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Processes\CollectionExtentions.cs" />
     <Compile Include="Processes\IUpdateResourceRecords.cs" />
     <Compile Include="Processes\ProcessSaver.cs" />
     <Compile Include="Processes\ResourceUsageRecord.cs" />
@@ -88,6 +89,10 @@
     <Compile Include="UIHelpers\FullCommandMultiConverter.cs" />
     <Compile Include="UIHelpers\FullCommandConverter.cs" />
     <Compile Include="UIHelpers\IsNullConverter.cs" />
+    <Compile Include="UIHelpers\Minus10PercentConverter.cs" />
+    <Compile Include="UIHelpers\Plus10PercentConverter.cs" />
+    <Compile Include="UIHelpers\MaxPlus10PercentConverter.cs" />
+    <Compile Include="UIHelpers\MinMinus10PercentConverter.cs" />
     <Compile Include="UIHelpers\ORConverter.cs" />
     <Compile Include="UIHelpers\RecordToDataPointConverter.cs" />
     <Compile Include="UIHelpers\ShortPathConverter.cs" />

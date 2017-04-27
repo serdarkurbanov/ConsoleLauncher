@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Management;
 using System.Text;
@@ -24,6 +25,10 @@ namespace ConsoleLauncher.Processes
         System.Diagnostics.Process _internalProcess;
         object _internalProcessSync = new object();
 
+        // dictionary of internal processes and their system assigned names
+        object _processTreeSync = new object();
+        Dictionary<string, System.Diagnostics.Process> _processTree = new Dictionary<string, System.Diagnostics.Process>();
+
         // UI elements
         // name displayed
         string _name;
@@ -44,8 +49,10 @@ namespace ConsoleLauncher.Processes
         public ObservableCollection<OutputRecord> VisibleRecords { get { return _visibleRecords; } }
 
         // collection of resource usage
+        private TimeSpan _lastTotalProcessorTime = TimeSpan.Zero;
         ObservableCollection<ResourceUsageRecord> _cpuUsage = new ObservableCollection<ResourceUsageRecord>();
         public ObservableCollection<ResourceUsageRecord> CPUUsage { get { return _cpuUsage; } }
+        
 
         ObservableCollection<ResourceUsageRecord> _memoryUsage = new ObservableCollection<ResourceUsageRecord>();
         public ObservableCollection<ResourceUsageRecord> MemoryUsage { get { return _memoryUsage; } }
@@ -56,6 +63,20 @@ namespace ConsoleLauncher.Processes
         ObservableCollection<ResourceUsageRecord> _threadUsage = new ObservableCollection<ResourceUsageRecord>();
         public ObservableCollection<ResourceUsageRecord> ThreadUsage { get { return _threadUsage; } }
 
+        // peak useage taken from processes
+        private double _peakCPUUsage;
+        public double PeakCPUUsage { get { return _peakCPUUsage; } set { if ( value == 0 ||_peakCPUUsage != value) { _peakCPUUsage = value; RaisePropertyChanged("PeakCPUUsage"); } } }
+
+        private double _peakMemoryUsage;
+        public double PeakMemoryUsage { get { return _peakMemoryUsage; } set { if (_peakMemoryUsage != value) { _peakMemoryUsage = value; RaisePropertyChanged("PeakMemoryUsage"); } } }
+
+        private double _peakDiskUsage;
+        public double PeakDiskUsage { get { return _peakDiskUsage; } set { if (_peakDiskUsage != value) { _peakDiskUsage = value; RaisePropertyChanged("PeakDiskUsage"); } } }
+
+        private double _peakThreadUsage;
+        public double PeakThreadUsage { get { return _peakThreadUsage; } set { if (_peakThreadUsage != value) { _peakThreadUsage = value; RaisePropertyChanged("PeakThreadUsage"); } } }
+
+        // process status
         ProcessStatus _status = ProcessStatus.Stopped;
         public ProcessStatus Status
         {
@@ -156,7 +177,7 @@ namespace ConsoleLauncher.Processes
                         r.ProcessVirtualMemory = _internalProcess.WorkingSet64;
                         r.ProcessThreadCount = _internalProcess.Threads.Count;
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         // something happened with internal process -> do nothing
                     }
@@ -209,10 +230,15 @@ namespace ConsoleLauncher.Processes
                             {
                                 _visibleRecords.Clear();
                             }
+                            _lastTotalProcessorTime = TimeSpan.Zero;
                             CPUUsage.Clear();
                             MemoryUsage.Clear();
                             DiskUsage.Clear();
                             ThreadUsage.Clear();
+                            PeakCPUUsage = 0;
+                            PeakDiskUsage = 0;
+                            PeakMemoryUsage = 0;
+                            PeakThreadUsage = 0;
                         });
 
                         // start process async
@@ -292,6 +318,10 @@ namespace ConsoleLauncher.Processes
                     {
                         _internalProcess.Dispose();
                         _internalProcess = null;
+                        lock (_processTreeSync)
+                        {
+                            _processTree.Clear();
+                        }
                     }
                 }
             }
@@ -326,22 +356,100 @@ namespace ConsoleLauncher.Processes
         // kill child processes
         private static void KillProcess(int pid)
         {
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher
-              ("Select * From Win32_Process Where ParentProcessID=" + pid);
-            ManagementObjectCollection moc = searcher.Get();
-            foreach (ManagementObject mo in moc)
+            foreach (var p in GetProcessList(pid))
             {
-                KillProcess(Convert.ToInt32(mo["ProcessID"]));
+                try
+                {
+                    p.Kill();
+                }
+                catch (Exception)
+                {
+                    // Process already exited.
+                }
             }
+        }
+
+        // get all processes for given process
+        private static List<System.Diagnostics.Process> GetProcessList(int pid)
+        {
+            List<System.Diagnostics.Process> list = new List<System.Diagnostics.Process>();
+
+            _GetProcesses(pid, list);
+
+            return list;
+        }
+        private static void _GetProcesses(int pid, List<System.Diagnostics.Process> list)
+        {
             try
             {
                 var proc = System.Diagnostics.Process.GetProcessById(pid);
-                proc.Kill();
+                list.Add(proc);
             }
-            catch (ArgumentException)
+            catch (Exception e)
             {
-                // Process already exited.
+                // Process already exited -> do nothing
             }
+
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher ("Select * From Win32_Process Where ParentProcessID=" + pid);
+            ManagementObjectCollection moc = searcher.Get();
+
+
+            foreach (ManagementObject mo in moc)
+            {
+                _GetProcesses(Convert.ToInt32(mo["ProcessID"]), list);
+            }
+        }
+
+        // get all processes for given process
+        private static Dictionary<string, System.Diagnostics.Process> GetProcessDict(int pid)
+        {
+            Dictionary<string, System.Diagnostics.Process> dict = new Dictionary<string, System.Diagnostics.Process>();
+
+            _GetProcesses(pid, dict);
+
+            return dict;
+        }
+        private static void _GetProcesses(int pid, Dictionary<string, System.Diagnostics.Process> dict)
+        {
+            try
+            {
+                var proc = System.Diagnostics.Process.GetProcessById(pid);
+                dict.Add(GetProcessInstanceName(pid), proc);
+            }
+            catch (Exception e)
+            {
+                // Process already exited -> do nothing
+            }
+
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
+            ManagementObjectCollection moc = searcher.Get();
+
+
+            foreach (ManagementObject mo in moc)
+            {
+                _GetProcesses(Convert.ToInt32(mo["ProcessID"]), dict);
+            }
+        }
+
+        // get process instance name by id
+        // taken from http://stackoverflow.com/questions/9115436/performance-counter-by-process-id-instead-of-name
+        private static string GetProcessInstanceName(int pid)
+        {
+            PerformanceCounterCategory cat = new PerformanceCounterCategory("Process");
+
+            string[] instances = cat.GetInstanceNames();
+            foreach (string instance in instances)
+            {
+                using (PerformanceCounter cnt = new PerformanceCounter("Process", "ID Process", instance, true))
+                {
+                    int val = (int)cnt.RawValue;
+                    if (val == pid)
+                    {
+                        return instance;
+                    }
+                }
+            }
+            throw new Exception("couldn't find the process instance name by id");
         }
 
         // commands
@@ -478,6 +586,10 @@ namespace ConsoleLauncher.Processes
                 {
                     _internalProcess.Dispose();
                     _internalProcess = null;
+                    lock(_processTreeSync)
+                    {
+                        _processTree.Clear();
+                    }
                 }
             }
 
@@ -520,22 +632,54 @@ namespace ConsoleLauncher.Processes
             ResourceUsageRecord disk = null;
             ResourceUsageRecord threads = null;
 
-            lock (_internalProcessSync)
+            double cpuCurr = 0;
+            double memCurr = 0;
+            double diskCurr = 0;
+            double threadsCurr = 0;
+
+            try
             {
-                if (_internalProcess != null)
+                lock (_internalProcessSync)
                 {
-                    try
+                    lock (_processTreeSync)
                     {
-                        cpu = new ResourceUsageRecord(20);
-                        mem = new ResourceUsageRecord(Convert.ToDouble(_internalProcess.WorkingSet64));
-                        disk = new ResourceUsageRecord(Convert.ToDouble(100));
-                        threads = new ResourceUsageRecord(Convert.ToDouble(_internalProcess.Threads.Count));
-                    }
-                    catch (Exception e)
-                    {
-                        // something happened to the process while requesting info => do nothing
+                        // init process tree if needed
+                        bool needsInit = false;
+                        try
+                        {
+                            needsInit = _processTree.Count == 0 || _processTree.Any(x => x.Value.HasExited);
+                        }
+                        catch (Exception)
+                        {
+                            needsInit = true;
+                        }
+
+                        if (needsInit && _internalProcess != null)
+                            _processTree = GetProcessDict(_internalProcess.Id);
+
+                        var prevProcessorTimeSpan = _lastTotalProcessorTime;
+                        _lastTotalProcessorTime = _processTree.Sum(x => x.Value.TotalProcessorTime);
+                        cpuCurr = _lastTotalProcessorTime.Subtract(prevProcessorTimeSpan).TotalMilliseconds / (Environment.ProcessorCount * 1000) * 100;
+                        // if list of processes has changed -> total processor time at this stage can be < 0 => do the calculation next time
+                        if (cpuCurr >= 0)
+                        {
+                            cpu = new ResourceUsageRecord(cpuCurr);
+                        }
+
+                        memCurr = _processTree.Sum(x => Convert.ToDouble(x.Value.WorkingSet64));
+                        mem = new ResourceUsageRecord(memCurr);
+
+                        diskCurr = _processTree.Sum(x => Convert.ToDouble(100));
+                        disk = new ResourceUsageRecord(diskCurr);
+
+                        threadsCurr = _processTree.Sum(x => Convert.ToDouble(x.Value.Threads.Count));
+                        threads = new ResourceUsageRecord(threadsCurr);
                     }
                 }
+            }
+            catch (Exception)
+            {
+                // something happened to the process or internal processes => ignore it
             }
 
             _dispatcher.Invoke(() =>
@@ -544,24 +688,32 @@ namespace ConsoleLauncher.Processes
                 {
                     CPUUsage.Add(cpu);
                     RaisePropertyChanged("CPUUsage");
+
+                    PeakCPUUsage = Math.Max(PeakCPUUsage, cpuCurr);
                 }
 
                 if(mem != null)
                 {
                     MemoryUsage.Add(mem);
                     RaisePropertyChanged("MemoryUsage");
+
+                    PeakMemoryUsage = Math.Max(PeakMemoryUsage, memCurr);
                 }
 
                 if (disk != null)
                 {
                     DiskUsage.Add(disk);
                     RaisePropertyChanged("DiskUsage");
+
+                    PeakDiskUsage = Math.Max(PeakDiskUsage, diskCurr);
                 }
 
                 if (threads != null)
                 {
                     ThreadUsage.Add(threads);
                     RaisePropertyChanged("ThreadUsage");
+
+                    PeakThreadUsage = Math.Max(PeakThreadUsage, threadsCurr);
                 }     
             });
         }
