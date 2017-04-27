@@ -1,6 +1,6 @@
 ## Download
 
-Pre-release version is available from [release](https://github.com/serdarkurbanov/ConsoleLauncher/releases) section of the repo: [zipped binaries](https://github.com/serdarkurbanov/ConsoleLauncher/releases/download/0.1/ConsoleLauncher.zip)
+Pre-release version is available from [release](https://github.com/serdarkurbanov/ConsoleLauncher/releases) section of the repo: [zipped binaries](https://github.com/serdarkurbanov/ConsoleLauncher/releases/download/0.2/ConsoleLauncher.zip)
 
 ## About Console Launcher
 
