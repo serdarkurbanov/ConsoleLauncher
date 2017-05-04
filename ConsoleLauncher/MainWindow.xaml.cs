@@ -32,11 +32,20 @@ namespace ConsoleLauncher
 
             PART_ProcessesTreeView.DataContext = _folderContainer;
 
-            _updateResourceTimer = new System.Threading.Timer((obj) => _folderContainer.UpdateResourceRecords(), null, 0, 1000);
+            _updateResourceTimer = new System.Threading.Timer((obj) => 
+            {
+                if (EnableResourceMonitoring ?? false)
+                {
+                    _folderContainer.UpdateResourceRecords();
+                }
+            }, null, 0, 1000);
         }
 
         // timer for updating resource usage
         System.Threading.Timer _updateResourceTimer;
+
+        // check if we enable resource monitoring
+        public bool? EnableResourceMonitoring { get; set; }
 
         // container for folders
         Processes.FolderContainer _folderContainer;
