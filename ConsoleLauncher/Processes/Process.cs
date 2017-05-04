@@ -40,6 +40,10 @@ namespace ConsoleLauncher.Processes
         ObservableCollection<string> _arguments = new ObservableCollection<string>();
         public ObservableCollection<string> Arguments { get { return _arguments; } set { _arguments = value; _dispatcher.Invoke(() => RaisePropertyChanged("Arguments")); } }
 
+        // input for the process
+        private string _inputString;
+        public string InputString { get { return _inputString; } set { _inputString = value; _dispatcher.Invoke(() => RaisePropertyChanged("InputString")); } }
+
         // all output from the process
         List<OutputRecord> _allRecords = new List<OutputRecord>();
         public List<OutputRecord> AllRecords { get { return _allRecords; } }
@@ -52,7 +56,7 @@ namespace ConsoleLauncher.Processes
         private TimeSpan _lastTotalProcessorTime = TimeSpan.Zero;
         ObservableCollection<ResourceUsageRecord> _cpuUsage = new ObservableCollection<ResourceUsageRecord>();
         public ObservableCollection<ResourceUsageRecord> CPUUsage { get { return _cpuUsage; } }
-        
+
 
         ObservableCollection<ResourceUsageRecord> _memoryUsage = new ObservableCollection<ResourceUsageRecord>();
         public ObservableCollection<ResourceUsageRecord> MemoryUsage { get { return _memoryUsage; } }
@@ -65,7 +69,7 @@ namespace ConsoleLauncher.Processes
 
         // peak useage taken from processes
         private double _peakCPUUsage;
-        public double PeakCPUUsage { get { return _peakCPUUsage; } set { if ( value == 0 ||_peakCPUUsage != value) { _peakCPUUsage = value; RaisePropertyChanged("PeakCPUUsage"); } } }
+        public double PeakCPUUsage { get { return _peakCPUUsage; } set { if (value == 0 || _peakCPUUsage != value) { _peakCPUUsage = value; RaisePropertyChanged("PeakCPUUsage"); } } }
 
         private double _peakMemoryUsage;
         public double PeakMemoryUsage { get { return _peakMemoryUsage; } set { if (_peakMemoryUsage != value) { _peakMemoryUsage = value; RaisePropertyChanged("PeakMemoryUsage"); } } }
@@ -245,9 +249,10 @@ namespace ConsoleLauncher.Processes
                         _internalProcess = new System.Diagnostics.Process();
 
                         _internalProcess.StartInfo.FileName = "cmd.exe";
-                        _internalProcess.StartInfo.Arguments = "/c " + Command + Arguments.Aggregate("", (x,y) => string.Concat(x, " ", y));
+                        _internalProcess.StartInfo.Arguments = "/c " + Command + Arguments.Aggregate("", (x, y) => string.Concat(x, " ", y));
                         _internalProcess.StartInfo.UseShellExecute = false;
                         _internalProcess.StartInfo.CreateNoWindow = true;
+                        _internalProcess.StartInfo.RedirectStandardInput = true;
                         _internalProcess.StartInfo.RedirectStandardError = true;
                         _internalProcess.StartInfo.RedirectStandardOutput = true;
                         _internalProcess.StartInfo.WorkingDirectory = _parentFolder.Path;
@@ -278,7 +283,7 @@ namespace ConsoleLauncher.Processes
                                 });
                             }
                             finally
-                            { 
+                            {
                                 // process ends => set state to stopped
                                 _StopProcess();
                             }
@@ -390,7 +395,7 @@ namespace ConsoleLauncher.Processes
                 // Process already exited -> do nothing
             }
 
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher ("Select * From Win32_Process Where ParentProcessID=" + pid);
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
             ManagementObjectCollection moc = searcher.Get();
 
 
@@ -462,7 +467,7 @@ namespace ConsoleLauncher.Processes
                     {
                         _StartProcess();
                     },
-                    obj => 
+                    obj =>
                     {
                         return Status == ProcessStatus.Paused || Status == ProcessStatus.Stopped;
                     });
@@ -549,6 +554,38 @@ namespace ConsoleLauncher.Processes
                         this.Dispose();
                     },
                     obj =>
+                    {
+                        return true;
+                    });
+            }
+        }
+
+        public ICommand InputCommand
+        {
+            get
+            {
+                return new UIHelpers.GenericCommand(
+                    (obj) => 
+                    {
+                        // send input string to the internal process input stream
+                        lock (_internalProcessSync)
+                        {
+                            if (_internalProcess == null)
+                                return;
+
+                            try
+                            {
+                                _internalProcess.StandardInput.WriteLine(InputString);
+                                _internalProcess.StandardInput.Flush();
+                                InputString = null;
+                            }
+                            catch (Exception)
+                            {
+                                // internal process died -> do nothing
+                            }
+                        }
+                    }, 
+                    (obj) =>
                     {
                         return true;
                     });
