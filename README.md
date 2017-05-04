@@ -8,7 +8,7 @@ Console Launcher is a simple console manager written in C# (WPF). This implies i
 
 The UI is built using the Metro style provided by MahApps (http://mahapps.com).
 
-![how it looks](https://cloud.githubusercontent.com/assets/10394306/25364447/85184e90-2930-11e7-9978-9aec3f6ac8f4.png)
+![how it looks](https://cloud.githubusercontent.com/assets/10394306/25688824/4aae55a2-3050-11e7-9bd8-19965e373e68.png)
 
 ## What it can do
 
@@ -16,9 +16,9 @@ The main thing this application provides is displaying the console output of run
 
 The console manager can be useful in the case of managing large number of processes that need to be started from console.
 
-Plots of CPU, memory and thread usage provide additional diagnostics (under development). Plots are made using plotting library OxyPlot (https://github.com/oxyplot).
+Plots of CPU, memory and thread usage provide additional diagnostics. Plots are made using plotting library OxyPlot (https://github.com/oxyplot). Since the plot building can consume system resources, the program allows to switch off the resource tracking by clicking the switch at the right upper corner (switched off by default).
 
-![how it looks with the plots](https://cloud.githubusercontent.com/assets/10394306/25364875/69df5fbc-2933-11e7-86c9-66aa9c3b167b.png)
+![how it looks with the plots](https://cloud.githubusercontent.com/assets/10394306/25688857/88e51b80-3050-11e7-91aa-c8f5b4dea20c.png)
 
 ## Working with the program
 
